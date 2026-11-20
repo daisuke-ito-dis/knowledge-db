@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: knowledge-db-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: knowledge-db
+  labels:
+    app: knowledge-db
+spec:
+  replicas: 1          # SQLite のため 1 レプリカ固定
+  strategy:
+    type: Recreate     # RWO ボリュームのため
+  selector:
+    matchLabels:
+      app: knowledge-db
+  template:
+    metadata:
+      labels:
+        app: knowledge-db
+    spec:
+      containers:
+        - name: app
+          # 内部レジストリ使用例。環境に合わせて変更してください
+          image: image-registry.openshift-image-registry.svc:5000/knowledge-demo/knowledge-db:latest
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: knowledge-db-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: knowledge-db
+spec:
+  selector:
+    app: knowledge-db
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: knowledge-db
+spec:
+  to:
+    kind: Service
+    name: knowledge-db
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
