@@ -1,5 +1,6 @@
 """ナレッジ管理DB デモアプリ(標準ライブラリのみ: http.server + sqlite3)"""
 import os
+import signal
 import sqlite3
 import threading
 from html import escape
@@ -125,5 +126,16 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     init_db()
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    server.daemon_threads = True
+
+    # PID 1 の Python は SIGTERM を無視するため、明示的に停止処理を登録する
+    def _stop(signum, frame):
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, _stop)
+    signal.signal(signal.SIGINT, _stop)
     print(f"listening on :{PORT}, db={DB_PATH}", flush=True)
-    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    server.serve_forever()
+    server.server_close()
+    print("shutdown complete", flush=True)
