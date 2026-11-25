@@ -49,7 +49,7 @@ def page(title, content):
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)} - ナレッジDB</title><style>{CSS}</style></head><body>
-<header><a href="/">検索</a><a href="/new">新規登録</a></header>{content}</body></html>"""
+<header><a href="/">検索</a><a href="/new">コンピュートグループ 新規登録</a></header>{content}</body></html>"""
 
 
 def render_item(r):
@@ -102,7 +102,7 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/healthz":
             return self._send(200, "ok", "text/plain")
         if u.path == "/new":
-            return self._send(200, page("新規登録", NEW_FORM))
+            return self._send(200, page("コンピュートグループ 新規登録", NEW_FORM))
         if u.path == "/":
             q = parse_qs(u.query).get("q", [""])[0].strip()
             return self._send(200, search_page(q))
