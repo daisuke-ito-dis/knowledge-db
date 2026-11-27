@@ -49,7 +49,7 @@ def page(title, content):
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escape(title)} - ナレッジDB</title><style>{CSS}</style></head><body>
-<header><a href="/">検索</a><a href="/new">新規登録</a></header>{content}</body></html>"""
+<header><a href="/">検索</a><a href="/new">コンピュート 新規登録</a></header>{content}</body></html>"""
 
 
 def render_item(r):
